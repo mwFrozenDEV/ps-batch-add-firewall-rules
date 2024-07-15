@@ -53,6 +53,7 @@ function searchDirectory {
     return $count
 }
 
+#Creates the name for the Rule using the traffic direction and the name of the .exe
 function createRuleDisplayName {
     param (
         $direction,
@@ -61,6 +62,7 @@ function createRuleDisplayName {
     return "Block $direction traffic: $name"
 }
 
+#Creates the description for the Rule using the name of the .exe, the type aswell as a time stamp.
 function createRuleDescription {
     param (
         $nameDesc,
@@ -112,16 +114,17 @@ function Convert-HexToColor {
     $b = [Convert]::ToInt32($hex.Substring(5, 2), 16)
     return [System.Drawing.Color]::FromArgb($r, $g, $b)
 }
+
 function Style-Button {
     param (
         [System.Windows.Forms.Button]$button
     )
-    $button.BackColor = Convert-HexToColor "#6D5D6E" #Background Color
-    $button.ForeColor = Convert-HexToColor "#F4EEE0" #Text Color
+    $button.BackColor = Convert-HexToColor "#4477CE" #Background Color
+    $button.ForeColor = Convert-HexToColor "#F1F6F9" #Text Color
     $button.Font = New-Object System.Drawing.Font("Segoe UI", 16, [System.Drawing.FontStyle]::Regular)  #Font and Size
     $button.FlatStyle = "Flat"  #Button Style
     $button.FlatAppearance.BorderSize = 0  #No Border
-    $button.FlatAppearance.MouseOverBackColor = Convert-HexToColor "#4F4557"  #Color on hover
+    $button.FlatAppearance.MouseOverBackColor = Convert-HexToColor "#8CABFF"  #Color on hover
     $button.FlatAppearance.MouseDownBackColor = Convert-HexToColor "#6D5D6E"  #Color on click
 }
 
@@ -129,7 +132,7 @@ function Style-Text {
     param (
         [System.Windows.Forms.Label]$label
     )
-    $label.Font = New-Object System.Drawing.Font("Segoe UI", 18, [System.Drawing.FontStyle]::Bold) #Font and Size
+    $label.Font = New-Object System.Drawing.Font("Segoe UI", 18, [System.Drawing.FontStyle]::Regular) #Font and Size
     $label.ForeColor = Convert-HexToColor "#F4EEE0" #Text Color
     $label.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
 }
@@ -145,58 +148,77 @@ function Calculate-Center {
     return New-Object System.Drawing.Point($xPos, $yPos)
 }
 
+#GUI Functions
+function createButton {
+    param (
+        $width,
+        $height,
+        $textOnButton,
+        [scriptblock]$onClick
+    )
+    $newButton = New-Object System.Windows.Forms.Button
+    $newButton.Text = $textOnButton
+    $newButton.Size = New-Object System.Drawing.Size($width,$height)
+    $newButton.Add_Click($onClick)
+    Style-Button -button $newButton   
+    return $newButton  
+}
+
+function createLabel {
+    param (
+        $width,
+        $height,
+        $text
+    )
+    $newLabel = New-Object System.Windows.Forms.Label
+    $newLabel.Text = $text
+    $newLabel.Size = New-Object System.Drawing.Size($width,$height)
+    $newLabel.AutoSize = $true
+    Style-Text $newLabel 
+    
+    return $newLabel
+}
+
+
 #Objects
 $gui = New-Object System.Windows.Forms.Form
-$topTitle = New-Object System.Windows.Forms.Label
 $currentpathLabel = New-Object System.Windows.Forms.Label
-$button_SelectPath = New-Object System.Windows.Forms.Button
 $filebrowserwindow = New-Object System.Windows.Forms.FolderBrowserDialog
-$buttonRunInbound = New-Object System.Windows.Forms.Button
-$buttonRunOutbound = New-Object System.Windows.Forms.Button
 
 #GUI
-$gui.Text = "Advanced firewall batch blocker - by mwFrozen"
-$gui.Size = New-Object System.Drawing.Size(800,500)
+$gui.Text = "Advanced firewall batch blocker - by github.com/mwFrozenDEV"
+$gui.Size = New-Object System.Drawing.Size(600,400)
 $gui.StartPosition = "CenterScreen"
-$gui.BackColor = Convert-HexToColor "#393646"
+$gui.BackColor = Convert-HexToColor "#35155D"
 
-#Title at the top
-$topTitle.Location = New-Object System.Drawing.Point(0, 20)
-$topTitle.Size = New-Object System.Drawing.Size(300,20)
-$topTitle.Text = "Batch Firewall Blocker"
-Style-Text $topTitle
 
-#Button on $gui, opens FileBrowser
-$button_SelectPath.Text = "Select Path"
-$button_SelectPath.Size = New-Object System.Drawing.Size(150,45)
-$button_SelectPath.Location = Calculate-Center -control $button_SelectPath -yPos 50
-Style-Button $button_SelectPath
-$button_SelectPath.Add_Click({ChoosePath})
+#Labels
+$topTitle = createLabel -width 300 -height 20 -text "Batch Firewall Blocker"
 
-#Path label
-$currentpathLabel.Location = New-Object System.Drawing.Point(0, 120)
-$currentpathLabel.Size = New-Object System.Drawing.Size(300,20)
-$currentPathLabel.AutoSize = $true
-$currentpathLabel.Text = "Path"
+$currentpathLabel = createLabel -width 20 -height 300 -text "Select a Path (Double Click to open Path in Explorer)"
+$currentpathLabel.BackColor = Convert-HexToColor "#0C0C0C"
+$currentpathLabel.ForeColor = Convert-HexToColor "#F1F6F9"
+$currentpathLabel.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Regular)
 $currentpathLabel.add_DoubleClick({OpenCurrentPath}) #DoubleClick opens Filebrowser with the current location
 
-#ButtonLoop
-$buttonRunInbound.Text = "run inbound"
-$buttonRunInbound.Size = New-Object System.Drawing.Size(150,45)
-$buttonRunInbound.Location = Calculate-Center -control $buttonRunInbound -yPos 150
-$buttonRunInbound.Add_Click({addFirewallRule -direction "Inbound"})
+#Buttons
+$button_SelectPath = createButton -width 150 -height 45 -textOnButton "Choose Path" -onClick { ChoosePath }
+$button_Inbound = createButton -width 190 -height 80 -textOnButton "Create Inbound Rules" -onClick { addFirewallRule -direction "Inbound" }
+$button_Outbound = createButton -width 190 -height 80 -textOnButton "Create Outbound Rules" -onClick { addFirewallRule -direction "Outbound" }
 
-$buttonRunOutbound.Text = "run outbound"
-$buttonRunOutbound.Size = New-Object System.Drawing.Size(150,45)
-$buttonRunOutbound.Location = Calculate-Center -control $buttonRunOutbound -yPos 300
-$buttonRunOutbound.Add_Click({addFirewallRule -direction "Outbound"})
+#Locations
+$button_SelectPath.Location = New-Object System.Drawing.Point(15, 70)
+$button_Inbound.Location = New-Object System.Drawing.Point(15, 210)
+$button_Outbound.Location = New-Object System.Drawing.Point(250, 210)
+$currentpathLabel.Location = New-Object System.Drawing.Point(15, 145)
+$topTitle.Location = New-Object System.Drawing.Point(15, 10)
 
 #Building the gui
 $gui.Controls.Add($topTitle)
 $gui.Controls.Add($button_SelectPath)
 $gui.Controls.Add($currentPathLabel)
-$gui.Controls.Add($buttonRunInbound)
-$gui.Controls.Add($buttonRunOutbound)
+$gui.Controls.Add($button_Inbound)
+$gui.Controls.Add($button_Outbound)
 
 #Show the gui
 $gui.Add_Shown({ $gui.Activate() })
