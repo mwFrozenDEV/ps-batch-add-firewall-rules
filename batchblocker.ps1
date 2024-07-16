@@ -103,6 +103,10 @@ function addFirewallRule {
     }
 }
 
+function addBothFirewallRules {
+    addFirewallRule -direction "Outbound"
+    addFirewallRule -direction "Inbound"
+}
 
 #Cosmetic Functions -----------------------------------------------------------------
 function Convert-HexToColor {
@@ -132,7 +136,7 @@ function Style-Text {
     param (
         [System.Windows.Forms.Label]$label
     )
-    $label.Font = New-Object System.Drawing.Font("Segoe UI", 18, [System.Drawing.FontStyle]::Regular) #Font and Size
+    $label.Font = New-Object System.Drawing.Font("Segoe UI", 20, [System.Drawing.FontStyle]::Regular) #Font and Size
     $label.ForeColor = Convert-HexToColor "#F4EEE0" #Text Color
     $label.TextAlign = [System.Drawing.ContentAlignment]::MiddleCenter
 }
@@ -148,7 +152,7 @@ function Calculate-Center {
     return New-Object System.Drawing.Point($xPos, $yPos)
 }
 
-#GUI Functions
+#GUI Functions -----------------------------------------------------------------
 function createButton {
     param (
         $width,
@@ -179,48 +183,81 @@ function createLabel {
     return $newLabel
 }
 
+function Build-GUI {
+    param (
+        [System.Windows.Forms.Form]$forms,
+        [System.Collections.ArrayList]$objectsToAdd
+    )
 
-#Objects
+    foreach ($object in $objectsToAdd) {
+        $forms.Controls.Add($object)
+    }
+}
+
+function newPosXY {
+    param (
+        $xPos,
+        $yPos
+    )
+    return New-Object System.Drawing.Point($xPos, $yPos)
+}
+
+
+#Objects -----------------------------------------------------------------
 $gui = New-Object System.Windows.Forms.Form
-$currentpathLabel = New-Object System.Windows.Forms.Label
 $filebrowserwindow = New-Object System.Windows.Forms.FolderBrowserDialog
 
-#GUI
-$gui.Text = "Advanced firewall batch blocker - by github.com/mwFrozenDEV"
+#GUI -----------------------------------------------------------------
+$gui.Text = "Batch firewall rule adder - by github.com/mwFrozenDEV"
 $gui.Size = New-Object System.Drawing.Size(600,400)
 $gui.StartPosition = "CenterScreen"
-$gui.BackColor = Convert-HexToColor "#35155D"
+$gui.BackColor = Convert-HexToColor "#002457"
 
 
-#Labels
-$topTitle = createLabel -width 300 -height 20 -text "Batch Firewall Blocker"
+#Labels -----------------------------------------------------------------
+$topTitle = createLabel -width 300 -height 20 -text "Batch Firewall Rule adder"
+$botTitle = createLabel -width 300 -height 20 -text "by github.com/mwFrozenDEV"
+$botTitle.Font = New-Object System.Drawing.Font("Segoe UI", 12, [System.Drawing.FontStyle]::Regular)
+
 
 $currentpathLabel = createLabel -width 20 -height 300 -text "Select a Path (Double Click to open Path in Explorer)"
 $currentpathLabel.BackColor = Convert-HexToColor "#0C0C0C"
 $currentpathLabel.ForeColor = Convert-HexToColor "#F1F6F9"
 $currentpathLabel.Font = New-Object System.Drawing.Font("Segoe UI", 10, [System.Drawing.FontStyle]::Regular)
-$currentpathLabel.add_DoubleClick({OpenCurrentPath}) #DoubleClick opens Filebrowser with the current location
+$currentpathLabel.add_DoubleClick({OpenCurrentPath}) #DoubleClick opens your currently selected Path in the Fileexplorer
 
-#Buttons
+#Buttons -----------------------------------------------------------------
+$buttonWidth = 190
+$buttonHeight = 80
 $button_SelectPath = createButton -width 150 -height 45 -textOnButton "Choose Path" -onClick { ChoosePath }
-$button_Inbound = createButton -width 190 -height 80 -textOnButton "Create Inbound Rules" -onClick { addFirewallRule -direction "Inbound" }
-$button_Outbound = createButton -width 190 -height 80 -textOnButton "Create Outbound Rules" -onClick { addFirewallRule -direction "Outbound" }
+$button_Inbound = createButton -width $buttonWidth -height $buttonHeight -textOnButton "Create Inbound Rules" -onClick { addFirewallRule -direction "Inbound" }
+$button_Outbound = createButton -width $buttonWidth -height $buttonHeight -textOnButton "Create Outbound Rules" -onClick { addFirewallRule -direction "Outbound" }
+$button_Both = createButton -width $buttonWidth -height $buttonHeight -textOnButton "Create Both Rules" -Onclick { addBothFirewallRules }
 
-#Locations
-$button_SelectPath.Location = New-Object System.Drawing.Point(15, 70)
-$button_Inbound.Location = New-Object System.Drawing.Point(15, 210)
-$button_Outbound.Location = New-Object System.Drawing.Point(250, 210)
-$currentpathLabel.Location = New-Object System.Drawing.Point(15, 145)
-$topTitle.Location = New-Object System.Drawing.Point(15, 10)
+#Locations -----------------------------------------------------------------
+$topTitle.Location = newPosXY -xPos 15 -yPos 5
+$botTitle.Location = newPosXY -xPos 15 -yPos 40
+$button_SelectPath.Location = newPosXY -xPos 15 -yPos 70
+$button_Inbound.Location = newPosXY -xPos 15 -yPos 180
+$button_Outbound.Location = newPosXY -xPos 250 -yPos 180
+$button_Both.Location = newPosXY -xPos 135 -yPos 270
+$currentpathLabel.Location = newPosXY -xPos 15 -yPos 135
 
-#Building the gui
-$gui.Controls.Add($topTitle)
-$gui.Controls.Add($button_SelectPath)
-$gui.Controls.Add($currentPathLabel)
-$gui.Controls.Add($button_Inbound)
-$gui.Controls.Add($button_Outbound)
 
-#Show the gui
+#Building the gui -----------------------------------------------------------------
+$addToGUI = @( #Array that holds all elements of the GUI
+    $topTitle,
+    $botTitle,
+    $button_SelectPath,
+    $currentPathLabel,
+    $button_Inbound,
+    $button_Outbound,
+    $button_Both
+)
+
+Build-GUI -forms $gui -objectsToAdd $addToGUI
+$botTitle.BringToFront()
+#Show the gui -----------------------------------------------------------------
 $gui.Add_Shown({ $gui.Activate() })
 [void] $gui.ShowDialog()
 
