@@ -70,7 +70,7 @@ function createRuleDescription {
         $type
     )
     $formattedTime = Get-Date -Format "HH:mm"
-    return "Blocks $type traffic for $nameDesc Created at: $formattedTime Rule generated with XXX"
+    return "Blocks $type traffic for $nameDesc Created at: $formattedTime Rule generated with a tool from github.com/mwFrozenDEV"
 }
 
 function addFirewallRule {
