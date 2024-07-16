@@ -1,5 +1,5 @@
 # PowerShell Batch Add Firewall Rules
-This is a powershell script that allows you to select a path and add a firewall rule for every executable inside the directory aswell as the subdirectorys with the click of a button.
+This is a powershell script that allows you to select a path and will create firewall rules for every executable inside the directory aswell as the subdirectorys with the click of a button.
 ## What does it do?
 This script gets every executable inside a given directory aswell as its sub directories and blocks inbound or/and outbound network traffic for these executables by creating individual firewall rules inside the Windows Defender Firewall with Advanced Security.
 ## Why use this?
